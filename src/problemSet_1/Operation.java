@@ -1,5 +1,7 @@
 package problemSet_1;
 
+import java.util.Stack;
+
 public class Operation<T> implements IOperation{
 	
 	public N_aryNode createNaryTree(){
@@ -60,11 +62,59 @@ public class Operation<T> implements IOperation{
 		return countOfChildren(node.getNextSibling(), count);
 	}
 
+	@Override
+	public int getHeight(N_aryNode<Integer> node) {
+		if (node == null)
+			return 0;
+		return Math.max(1 + getHeight(node.firstChild), getHeight(node.nextSibling));
+	}
+
+	// Time complexity = O(2*n) ~~ O(n)  -- Once at the time of inserting in stack and once at time of retrieval from stack
+	// Space Complexity = O(2n), when not considering jvn inner stack for method - pushChildrenInReverseSequence
+	@Override
+	public void zigZagTraversal(N_aryNode<Integer> node) {
+		Stack<N_aryNode<Integer>> firstToLastChild = new Stack<>();
+		Stack<N_aryNode<Integer>> lastToFirstChild = new Stack<>();
+		lastToFirstChild.push(node);
+		while (!firstToLastChild.isEmpty() || !lastToFirstChild.isEmpty()) {
+			while (!lastToFirstChild.isEmpty()) {
+				N_aryNode<Integer> currentNode = lastToFirstChild.pop();
+				System.out.print(currentNode.data + " ");
+				N_aryNode<Integer> firstChild = currentNode.firstChild;
+				if (firstChild == null) continue;
+				// Push first child and then, nextChildren are added in sequence
+				firstToLastChild.push(firstChild);
+				N_aryNode<Integer> nextSibling = firstChild.nextSibling;
+				while (nextSibling != null) {
+					firstToLastChild.push(nextSibling);
+					nextSibling = nextSibling.nextSibling;
+				}
+			}
+
+			while (!firstToLastChild.isEmpty()) {
+				N_aryNode<Integer> currentNode = firstToLastChild.pop();
+				System.out.print(currentNode.data + " ");
+				N_aryNode<Integer> firstChild = currentNode.firstChild;
+				if (firstChild == null) continue;
+				// nextChildren are added in reverse sequence and then, first child is added
+				pushChildrenInReverseSequence(lastToFirstChild, firstChild.nextSibling);
+				lastToFirstChild.push(firstChild);
+			}
+		}
+ 	}
+
+ 	private void pushChildrenInReverseSequence(Stack<N_aryNode<Integer>> stack, N_aryNode<Integer> nextChild) {
+		if (nextChild.nextSibling != null)
+			pushChildrenInReverseSequence(stack, nextChild.nextSibling);
+		stack.push(nextChild);
+	}
+
 	public static void main(String[] args) {
 		Operation object = new Operation();
 		N_aryNode root1 = object.createNaryTree();
 		N_aryNode root2 = object.createNaryTree2();
-		System.out.println(object.countOfChildren(root1));
+		object.zigZagTraversal(root1);
+		//System.out.println(object.countOfChildren(root1));
 	}
 
 }
